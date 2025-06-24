@@ -24,5 +24,14 @@
     (2) drawing boxes (rectangle)
     (3) displaying window (imshow)
 * go through in-line comments in script
-
+**Day 3:**
+* Streamlit-webrtc handles webcam video streams ; av is a dependency for video processing
+* Using streamlit's in-browser webcam stream allows for more UI finetuning like buttons, start/stop, downloading csvs. Whereas opencv has minimal control & just pops up a raw system window
+* CLI = command line interface
+* Streamlit WebRTC starts several trends since it is designed for real-time media streaming so it can process frames without lag. Each thread was running its own model instance -> which is not only wasteful, but also threads could be processing different copies or the output frames that are returned back are not synced. To ensure only one model is loaded and shared:
+    * @st.cache_resource
+    * def load_model():
+        * ...
+    * model = load_model()
+    
 WHERE YOU LEFT OFF: creating a UI for your app. Finetuning YOLO with custom images.
