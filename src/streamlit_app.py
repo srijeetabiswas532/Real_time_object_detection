@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 import torch
 import cv2
 import pandas as pd
@@ -68,9 +68,28 @@ def detect_objects(frame, logged_objects=set(), logged_rows=[]):
     return frame, logged_objects, logged_rows
 
 # Streamlit transformer class
-class YOLOTransformer(VideoTransformerBase):
+class YOLOProcessor(VideoProcessorBase):
+    # def recv(self, frame: VideoFrame) -> VideoFrame:
+    #     img = frame.to_ndarray(format="bgr24")
+
+    #     if logging_enabled:
+    #         img, st.session_state.logged_objects, st.session_state.logged_rows = detect_objects(
+    #             img,
+    #             st.session_state.logged_objects,
+    #             st.session_state.logged_rows
+    #         )
+    #     else:
+    #         img, _, _ = detect_objects(img, set(), [])
+
+    #     # Convert back to VideoFrame
+    #     return VideoFrame.from_ndarray(img, format="bgr24")
+
     def recv(self, frame: VideoFrame) -> VideoFrame:
-        img = frame.to_ndarray(format="bgr24")
+        img = frame.to_ndarray(format="bgr24").copy()
+
+        # Just for debugging – draw timestamp
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        cv2.putText(img, f"Time: {timestamp}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
 
         if logging_enabled:
             img, st.session_state.logged_objects, st.session_state.logged_rows = detect_objects(
@@ -81,12 +100,12 @@ class YOLOTransformer(VideoTransformerBase):
         else:
             img, _, _ = detect_objects(img, set(), [])
 
-        # Convert back to VideoFrame
         return VideoFrame.from_ndarray(img, format="bgr24")
     
 
 # Start video stream
-webrtc_streamer(key="yolo", video_processor_factory=YOLOTransformer)
+webrtc_streamer(key="yolo", video_processor_factory=YOLOProcessor, media_stream_constraints={"video": True, "audio": False},
+    async_processing=True,)
 
 # Show detected objects
 if st.session_state.logged_objects:
