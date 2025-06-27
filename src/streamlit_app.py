@@ -44,10 +44,12 @@ def detect_objects(frame, logged_objects=set(), logged_rows=[]):
 
     results = model(frame) # running YOLO on image
     detections = results.pandas().xyxy[0] # converts predictions to pandas df (xyxy gives boxing coordinates)
+    print(detections)
 
     for _, row in detections.iterrows(): # go through each detected object
         label = row['name']
-        if label in TARGET_CLASSES and label not in logged_objects: # only act if object is in the target classes and hasn't been logged yet
+        if label in TARGET_CLASSES and label not in logged_objects: # only act if object is in the target classes and hasn't been logged yet      
+
             x1, y1, x2, y2 = map(int, [row['xmin'], row['ymin'], row['xmax'], row['ymax']]) # boxing coordinates
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2) # drawing a box
@@ -69,27 +71,8 @@ def detect_objects(frame, logged_objects=set(), logged_rows=[]):
 
 # Streamlit transformer class
 class YOLOProcessor(VideoProcessorBase):
-    # def recv(self, frame: VideoFrame) -> VideoFrame:
-    #     img = frame.to_ndarray(format="bgr24")
-
-    #     if logging_enabled:
-    #         img, st.session_state.logged_objects, st.session_state.logged_rows = detect_objects(
-    #             img,
-    #             st.session_state.logged_objects,
-    #             st.session_state.logged_rows
-    #         )
-    #     else:
-    #         img, _, _ = detect_objects(img, set(), [])
-
-    #     # Convert back to VideoFrame
-    #     return VideoFrame.from_ndarray(img, format="bgr24")
-
     def recv(self, frame: VideoFrame) -> VideoFrame:
-        img = frame.to_ndarray(format="bgr24").copy()
-
-        # Just for debugging – draw timestamp
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        cv2.putText(img, f"Time: {timestamp}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        img = frame.to_ndarray(format="bgr24")
 
         if logging_enabled:
             img, st.session_state.logged_objects, st.session_state.logged_rows = detect_objects(
@@ -100,8 +83,8 @@ class YOLOProcessor(VideoProcessorBase):
         else:
             img, _, _ = detect_objects(img, set(), [])
 
+        # Convert back to VideoFrame
         return VideoFrame.from_ndarray(img, format="bgr24")
-    
 
 # Start video stream
 webrtc_streamer(key="yolo", video_processor_factory=YOLOProcessor, media_stream_constraints={"video": True, "audio": False},

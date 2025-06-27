@@ -33,5 +33,5 @@
     * def load_model():
         * ...
     * model = load_model()
-    
-WHERE YOU LEFT OFF: creating a UI for your app. Finetuning YOLO with custom images.
+
+WHERE YOU LEFT OFF: UI issue is an intrinsically streamlit issue. Cannot be fixed from user-side. Finished project!
